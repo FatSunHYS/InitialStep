@@ -50,7 +50,7 @@ int main()
 	cout << "width = " << testimg->width << endl;
 	cout << "height = " << testimg->height << endl;
 	cout << "widthStep = " << testimg->widthStep << endl;
-	cout << "depth = " << testimg->depth << endl;
+	cout << "depth = " << testimg->depth << endl << endl;
 #endif
 
 #if 0
@@ -72,7 +72,7 @@ int main()
 	CV_PI / 180, 50, 50, 10 );
 
 #if 1
-	cout << "total lines: " << lines->total << endl;
+	cout << "total lines: " << lines->total << endl << endl;
 #endif
 
 #if 1
@@ -82,9 +82,9 @@ int main()
 	linepoint = ( CvPoint* )cvGetSeqElem( lines, 0 );
 	for( int i = 0; i < lines->total; i += 2 )
 	{
-		//cvLine( showimg, linepoint[ i ], linepoint[ i + 1 ], CV_RGB( 0, 255, 0 ), 3, CV_AA, 0 );
-		cvCircle( showimg, linepoint[ 1 ], 3, CV_RGB( 0, 255, 0 ), 3 );
-		cout << linepoint[ 1 ].x << "\t" << linepoint[ 1 ].y << endl;
+		cvLine( showimg, linepoint[ i ], linepoint[ i + 1 ], CV_RGB( 0, 255, 0 ), 3, CV_AA, 0 );
+		//cvCircle( showimg, linepoint[ 1 ], 3, CV_RGB( 0, 255, 0 ), 3 );
+		//cout << linepoint[ 1 ].x << "\t" << linepoint[ 1 ].y << endl;
 		//cvCircle( showimg, linepoint[ 1 ], 3, CV_RGB( 0, 255, 0 ), 3 );
 	}
 
@@ -112,15 +112,7 @@ int main()
 			continue;
 		}
 
-#if 1
- 		cout << "ep[" << i << "].x=" << endpoint[ i ].x << endl;
-		cout << "ep[" << i << "].y=" << endpoint[ i ].y << endl;
-		cout << "ep[" << i + 1 << "].x=" << endpoint[ i + 1 ].x << endl;
-		cout << "ep[" << i + 1 << "].y=" << endpoint[ i + 1 ].y << endl;
-#endif
-
 		Slope = ( double )( endpoint[ i + 1 ].y - endpoint[ i ].y ) / ( endpoint[ i + 1 ].x - endpoint[ i ].x );
-		cout << atan( Slope ) << endl;
 		EndPoint_Degree = ( int )( atan( Slope ) * 180 / CV_PI );
 		++Histogram_bins[ EndPoint_Degree + 90 ];
 	}
@@ -133,6 +125,130 @@ int main()
 			cout << "Degree " << i - 90 << " = " << Histogram_bins[ i ] << endl;
 		}
 	}
+	cout << endl;
 #endif
+
+	//select the maximum number of the slope.
+	int MaxSlope_Index = 0;
+	for( int i = 1; i < 180; ++i )
+	{
+		if( Histogram_bins[ i ] > Histogram_bins[ MaxSlope_Index ] )
+		{
+			MaxSlope_Index = i;
+		}
+	}
+
+	cout << "MaxSlope Index = " << MaxSlope_Index << endl;
+	cout << "Maximum number of the slope = " << Histogram_bins[ MaxSlope_Index ] << endl;
+	cout << "Degree = " << MaxSlope_Index - 90 << endl << endl;
+
+	int *offset = new int[ Histogram_bins[ MaxSlope_Index ] ];
+	int *offset_pointer = offset;
+	int centerpoint_x;
+	int centerpoint_y;
+	double k_slope;
+	if( MaxSlope_Index )
+	{
+		k_slope = tan( ( double )( MaxSlope_Index - 90 ) / 180 * CV_PI );
+	}
+	for( int i = 0; i < lines->total; i += 2 )
+	{
+		if( MaxSlope_Index == 0 )
+		{
+			//Slope does not exist.
+			if( endpoint[ i ].x == endpoint[ i + 1 ].x )
+			{
+				*offset_pointer = endpoint[ i ].x;
+				++offset_pointer;
+			}
+		}
+		else
+		{
+			//Slope does exist.
+			if( endpoint[ i ].x == endpoint[ i + 1 ].x )
+			{
+				continue;
+			}
+
+			Slope = ( double )( endpoint[ i + 1 ].y - endpoint[ i ].y ) / ( endpoint[ i + 1 ].x - endpoint[ i ].x );
+			EndPoint_Degree = ( int )( atan( Slope ) * 180 / CV_PI );
+
+			if( EndPoint_Degree == MaxSlope_Index - 90 )
+			{
+				centerpoint_x = ( endpoint[ i ].x + endpoint[ i + 1 ].x ) / 2;
+				centerpoint_y = ( endpoint[ i ].y + endpoint[ i + 1 ].y ) / 2;
+
+				*offset_pointer = ( int )( centerpoint_y - k_slope * centerpoint_x );
+				++offset_pointer;
+			}
+		}
+	}
+
+#if 1
+	for( int i = 0; i < Histogram_bins[ MaxSlope_Index ]; ++i )
+	{
+		cout << "offset[" << i << "] = " << offset[ i ] << endl;
+	}
+	cout << endl;
+#endif
+
+	//cluster the offset
+	int ClusterOffset = 0;
+
+	//temperatory set the offset is the average value.
+
+	for( int i = 0; i < Histogram_bins[ MaxSlope_Index ]; ++i )
+	{
+		ClusterOffset += offset[ i ];
+	}
+	ClusterOffset /= Histogram_bins[ MaxSlope_Index ];
+
+#if 1
+	cout << "ClusterOffset = " << ClusterOffset << endl << endl;
+#endif
+
+	//Print Out the formular.
+	if( MaxSlope_Index )
+	{
+		cout << "Formular : " << k_slope << " * x - y + " << ClusterOffset << " = 0 " << endl << endl;
+	}
+	else
+	{
+		cout << "Formular : x = " << -ClusterOffset << endl << endl;
+	}
+
+#if 1
+	//Draw the Lines.
+	CvPoint ForecastPoint1;
+	CvPoint ForecastPoint2;
+
+	if( MaxSlope_Index )
+	{
+		ForecastPoint1.x = 0;
+		ForecastPoint1.y = ClusterOffset;
+		//ForecastPoint2.x = ( - ClusterOffset ) / k_slope;
+		//ForecastPoint2.y = 0;
+		ForecastPoint2.x = testimg->width;
+		ForecastPoint2.y = k_slope * testimg->width + ClusterOffset;
+	}
+	else
+	{
+		ForecastPoint1.x = -ClusterOffset;
+		ForecastPoint1.y = 0;
+		ForecastPoint2.x = -ClusterOffset;
+		ForecastPoint2.y = testimg->height;
+	}
+
+	IplImage * showimg2 = cvLoadImage( TEST_PHOTO_DIR );
+
+	cvLine( showimg2, ForecastPoint1, ForecastPoint2, CV_RGB( 0, 255, 0 ), 3, CV_AA, 0 );
+
+	cvShowImage( "test1", showimg2 );
+	cvWaitKey( 0 );
+	cvDestroyWindow( "test1" );
+#endif
+
+	delete offset;
+	offset = NULL;
 
 }
