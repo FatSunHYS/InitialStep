@@ -43,7 +43,7 @@ all: InitialStep
 InitialStep: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
-	arm-hisiv100nptl-linux-g++ -L/home/fatsun/Library/OpenCV/install-2.4.12-hisiv100/lib -o "InitialStep" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-hisiv100nptl-linux-g++ -L/home/fatsun/Library/OpenCV/install-opencv-2.4.12-hisiv100/lib -o "InitialStep" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

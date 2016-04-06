@@ -81,7 +81,7 @@ int main()
 	line = ( CvPoint* )cvGetSeqElem( lines, 0 );
 	for( int i = 0; i < lines->total; i += 2 )
 	{
-		cvLine( testimg, line[ i ], line[ i + 1 ], CV_RGB( 0, 0, 0 ), 3, CV_AA, 0 );
+		cvLine( testimg, line[ i ], line[ i + 1 ], CV_RGB( 0, 255, 0 ), 3, CV_AA, 0 );
 	}
 
 	cvShowImage( "test1", testimg );
