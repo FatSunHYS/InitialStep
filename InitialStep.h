@@ -34,6 +34,7 @@ Include headers
 #include "imgproc/imgproc.hpp"
 
 #include <iostream>
+#include <cmath>
 using namespace std;
 
 
@@ -48,7 +49,7 @@ Global Constants
 /*=====================================
 Global Macro
 =====================================*/
-#define LOCAL_DEBUG 0
+#define LOCAL_DEBUG 1
 #define TEST_PHOTO_DIR	( const char* )"/home/fatsun/Pictures/test-photo/x4.jpg"
 #define RED_CHANNEL_OFFSET	 	2
 #define GREEN_CHANNEL_OFFSET	1

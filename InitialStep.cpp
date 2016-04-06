@@ -53,7 +53,7 @@ int main()
 	cout << "depth = " << testimg->depth << endl;
 #endif
 
-#if LOCAL_DEBUG
+#if 0
 	cvNamedWindow( "test1" );
 	cvShowImage( "test1", testimg );
 	cvWaitKey( 0 );
@@ -66,29 +66,73 @@ int main()
 	CvMemStorage *storage = cvCreateMemStorage( 0 );
 	cvClearMemStorage( storage );
 	cvCanny( testimg, testimg, 50, 100 );
-	CvPoint* line;
 	CvSeq* lines;
+
 	lines = cvHoughLines2( testimg, storage, CV_HOUGH_PROBABILISTIC, 1,
 	CV_PI / 180, 50, 50, 10 );
-	testimg = cvLoadImage( TEST_PHOTO_DIR );
 
 #if 1
 	cout << "total lines: " << lines->total << endl;
 #endif
 
-#if LOCAL_DEBUG
+#if 1
 	//Draw the Lines.
-	line = ( CvPoint* )cvGetSeqElem( lines, 0 );
+	CvPoint* linepoint;
+	IplImage * showimg = cvLoadImage( TEST_PHOTO_DIR );
+	linepoint = ( CvPoint* )cvGetSeqElem( lines, 0 );
 	for( int i = 0; i < lines->total; i += 2 )
 	{
-		cvLine( testimg, line[ i ], line[ i + 1 ], CV_RGB( 0, 255, 0 ), 3, CV_AA, 0 );
+		//cvLine( showimg, linepoint[ i ], linepoint[ i + 1 ], CV_RGB( 0, 255, 0 ), 3, CV_AA, 0 );
+		cvCircle( showimg, linepoint[ 1 ], 3, CV_RGB( 0, 255, 0 ), 3 );
+		cout << linepoint[ 1 ].x << "\t" << linepoint[ 1 ].y << endl;
+		//cvCircle( showimg, linepoint[ 1 ], 3, CV_RGB( 0, 255, 0 ), 3 );
 	}
 
-	cvShowImage( "test1", testimg );
+	cvShowImage( "test1", showimg );
 	cvWaitKey( 0 );
 	cvDestroyWindow( "test1" );
 #endif
 
+	//Draw the Histogram.
+	int Histogram_bins[ 180 ];	// index 0 represent -90 degree, index 90 represent 0 degree, index 179 represent 89 degree
 
+	for( int i = 0; i < 180; ++i )
+	{
+		Histogram_bins[ i ] = 0;
+	}
+
+	CvPoint *endpoint = ( CvPoint* )cvGetSeqElem( lines, 0 );
+	int EndPoint_Degree;
+	double Slope;
+	for( int i = 0; i < lines->total; i += 2 )
+	{
+		if( endpoint[ i ].x == endpoint[ i + 1 ].x )
+		{
+			++Histogram_bins[ 0 ];
+			continue;
+		}
+
+#if 1
+ 		cout << "ep[" << i << "].x=" << endpoint[ i ].x << endl;
+		cout << "ep[" << i << "].y=" << endpoint[ i ].y << endl;
+		cout << "ep[" << i + 1 << "].x=" << endpoint[ i + 1 ].x << endl;
+		cout << "ep[" << i + 1 << "].y=" << endpoint[ i + 1 ].y << endl;
+#endif
+
+		Slope = ( double )( endpoint[ i + 1 ].y - endpoint[ i ].y ) / ( endpoint[ i + 1 ].x - endpoint[ i ].x );
+		cout << atan( Slope ) << endl;
+		EndPoint_Degree = ( int )( atan( Slope ) * 180 / CV_PI );
+		++Histogram_bins[ EndPoint_Degree + 90 ];
+	}
+
+#if 1
+	for( int i = 0; i < 180; ++i )
+	{
+		if( Histogram_bins[ i ] )
+		{
+			cout << "Degree " << i - 90 << " = " << Histogram_bins[ i ] << endl;
+		}
+	}
+#endif
 
 }
