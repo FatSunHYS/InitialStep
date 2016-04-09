@@ -105,14 +105,14 @@ int main()
 	cout << "total lines: " << lines->total << endl << endl;
 #endif
 
-#if 0
+#if 1
 	//Draw the Lines.
 	CvPoint* linepoint;
 	showimg = cvLoadImage( TEST_PHOTO_DIR );
 	linepoint = ( CvPoint* )cvGetSeqElem( lines, 0 );
 	for( counter = 0; counter < lines->total; counter += 2 )
 	{
-		cvLine( showimg, linepoint[ counter ], linepoint[ counter + 1 ], CV_RGB( 0, 255, 0 ), 3, CV_AA, 0 );
+		cvLine( showimg, linepoint[ counter ], linepoint[ counter + 1 ], CV_RGB( 0, 255, 0 ), 1, CV_AA, 0 );
 		//cvCircle( showimg, linepoint[ 1 ], 3, CV_RGB( 0, 255, 0 ), 3 );
 		//cout << linepoint[ 1 ].x << "\t" << linepoint[ 1 ].y << endl;
 		//cvCircle( showimg, linepoint[ 1 ], 3, CV_RGB( 0, 255, 0 ), 3 );
