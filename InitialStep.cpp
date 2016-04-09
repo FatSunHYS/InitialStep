@@ -34,6 +34,7 @@
 /*=====================================
  Functions definition
  =====================================*/
+void DrawLine( IplImage **image, int IsSlopeValid, double kslope, int offset );
 
 /*=====================================
  Implementation of functions
@@ -219,29 +220,10 @@ int main()
 
 #if 1
 	//Draw the Lines.
-	CvPoint ForecastPoint1;
-	CvPoint ForecastPoint2;
-
-	if( MaxSlope_Index )
-	{
-		ForecastPoint1.x = 0;
-		ForecastPoint1.y = ClusterOffset;
-		//ForecastPoint2.x = ( - ClusterOffset ) / k_slope;
-		//ForecastPoint2.y = 0;
-		ForecastPoint2.x = testimg->width;
-		ForecastPoint2.y = k_slope * testimg->width + ClusterOffset;
-	}
-	else
-	{
-		ForecastPoint1.x = -ClusterOffset;
-		ForecastPoint1.y = 0;
-		ForecastPoint2.x = -ClusterOffset;
-		ForecastPoint2.y = testimg->height;
-	}
 
 	IplImage * showimg2 = cvLoadImage( TEST_PHOTO_DIR );
 
-	cvLine( showimg2, ForecastPoint1, ForecastPoint2, CV_RGB( 0, 255, 0 ), 3, CV_AA, 0 );
+	DrawLine( &showimg2, MaxSlope_Index, k_slope, ClusterOffset );
 
 	cvShowImage( "test1", showimg2 );
 	cvWaitKey( 0 );
@@ -252,3 +234,76 @@ int main()
 	offset = NULL;
 
 }
+
+void DrawLine( IplImage **image, int IsSlopeValid, double kslope, int offset )
+{
+	int TemporaryData;
+	CvPoint EndPoint[ 4 ];
+	int indexcounter = 0;
+
+	if( IsSlopeValid )
+	{
+		if( ( 0 <= offset ) && ( offset <= ( *image )->height ) )
+		{
+			EndPoint[ indexcounter ].x = 0;
+			EndPoint[ indexcounter ].y = offset;
+			++indexcounter;
+		}
+
+		TemporaryData = -offset / kslope;
+		if( ( 0 < TemporaryData ) && ( TemporaryData <= ( *image )->width ) )
+		{
+			EndPoint[ indexcounter ].x = TemporaryData;
+			EndPoint[ indexcounter ].y = 0;
+			++indexcounter;
+		}
+
+		TemporaryData = kslope * ( *image )->width + offset;
+		if( ( 0 < TemporaryData ) && ( TemporaryData <= ( *image )->height ) )
+		{
+			EndPoint[ indexcounter ].x = ( *image )->width;
+			EndPoint[ indexcounter ].y = TemporaryData;
+			++indexcounter;
+		}
+
+		TemporaryData = ( ( *image )->height - offset ) / kslope;
+		if( ( 0 < TemporaryData ) && ( TemporaryData < ( *image )->width ) )
+		{
+			EndPoint[ indexcounter ].x = TemporaryData;
+			EndPoint[ indexcounter ].y = ( *image )->height;
+			++indexcounter;
+		}
+
+		if( indexcounter < 2 )
+		{
+			cout << "No suitable line to draw on the image." << endl << endl;
+			return;
+		}
+
+	}
+	else
+	{
+		if( ( 0 <= offset ) && ( offset <= ( *image )->height ) )
+		{
+			EndPoint[ indexcounter ].x = offset;
+			EndPoint[ indexcounter ].y = 0;
+			++indexcounter;
+		}
+
+		if( indexcounter < 1 )
+		{
+			cout << "No suitable line to draw on the image." << endl << endl;
+			return;
+		}
+
+		EndPoint[ indexcounter ].x = offset;
+		EndPoint[ indexcounter ].y = ( *image )->height;
+		++indexcounter;
+	}
+
+	//cout << "indexcounter = " << indexcounter << endl << endl;
+	cvLine( *image, EndPoint[ 0 ], EndPoint[ 1 ], CV_RGB( 0, 255, 0 ), 1, CV_AA, 0 );
+
+	return;
+}
+
