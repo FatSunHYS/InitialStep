@@ -50,7 +50,7 @@ Global Constants
 Global Macro
 =====================================*/
 #define LOCAL_DEBUG 1
-#define TEST_PHOTO_DIR	( const char* )"/home/fatsun/Pictures/test-photo/x7.jpg"
+#define TEST_PHOTO_DIR	( const char* )"/home/fatsun/Pictures/test-photo/x12.jpg"
 #define RED_CHANNEL_OFFSET	 	2
 #define GREEN_CHANNEL_OFFSET	1
 #define BLUE_CHANNEL_OFFSET		0
